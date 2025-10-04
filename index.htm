@@ -22,6 +22,7 @@
       align-items: center;
       padding: 20px;
       background-color: #333;
+      flex-wrap: wrap;
     }
     .profile img {
       width: 150px;
@@ -29,9 +30,15 @@
       border-radius: 50%;
       margin-left: 20px;
       cursor: pointer;
+      transition: 0.3s;
+    }
+    .profile img:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #ffcc00;
     }
     .info {
       flex: 1;
+      min-width: 250px;
     }
     .info h2 {
       margin: 0;
@@ -55,12 +62,28 @@
       margin: 10px;
       border: 2px solid #ffcc00;
       cursor: pointer;
+      transition: 0.3s;
+    }
+    .gallery img:hover {
+      transform: rotate(-2deg) scale(1.1);
     }
     footer {
       background-color: #222;
       color: #aaa;
       text-align: center;
       padding: 10px;
+    }
+    @media (max-width: 768px) {
+      .profile {
+        flex-direction: column;
+        text-align: center;
+      }
+      .profile img {
+        margin: 0 auto 20px;
+      }
+      .gallery img {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -96,6 +119,12 @@
   <div id="imageContainer"></div>
 </section>
 
+<!-- پنجره نمایش عکس -->
+<div id="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000000cc;z-index:999;">
+  <span onclick="closeModal()" style="position:absolute;top:20px;right:30px;font-size:30px;color:#fff;cursor:pointer;">×</span>
+  <img id="modalImg" style="margin:auto;display:block;max-width:90%;max-height:90%;margin-top:5%;">
+</div>
+
 <footer>
   <p>© 2025 محمد حسام عظیمی</p>
 </footer>
@@ -108,7 +137,9 @@
     input.onchange = e => {
       const reader = new FileReader();
       reader.onload = () => {
-        document.querySelector('.profile img').src = reader.result;
+        const imgSrc = reader.result;
+        document.querySelector('.profile img').src = imgSrc;
+        localStorage.setItem('profilePhoto', imgSrc);
       };
       reader.readAsDataURL(e.target.files[0]);
     };
@@ -120,10 +151,39 @@
     reader.onload = () => {
       const img = document.createElement('img');
       img.src = reader.result;
+      img.onclick = () => openModal(img.src);
       document.getElementById('imageContainer').appendChild(img);
+
+      let gallery = JSON.parse(localStorage.getItem('gallery') || '[]');
+      gallery.push(reader.result);
+      localStorage.setItem('gallery', JSON.stringify(gallery));
     };
     reader.readAsDataURL(event.target.files[0]);
   }
+
+  function openModal(src) {
+    document.getElementById('modalImg').src = src;
+    document.getElementById('modal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+  }
+
+  window.onload = () => {
+    const savedPhoto = localStorage.getItem('profilePhoto');
+    if (savedPhoto) {
+      document.querySelector('.profile img').src = savedPhoto;
+    }
+
+    const savedGallery = JSON.parse(localStorage.getItem('gallery') || '[]');
+    savedGallery.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.onclick = () => openModal(src);
+      document.getElementById('imageContainer').appendChild(img);
+    });
+  };
 </script>
 
 </body>
